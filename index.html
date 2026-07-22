@@ -1,85 +1,6 @@
 <!doctype html>
 <html lang="es">
 <head>
-<!-- skill:chrome -->
-<style>
-/* Credit line — bottom-right */
-.design-ui-credit {
-  position: fixed;
-  bottom: 12px;
-  right: 12px;
-  font: 11px/1 system-ui, sans-serif;
-  color: rgba(128,128,128,0.5);
-  pointer-events: none;
-  z-index: 2147483647;
-  transition: opacity 0.4s ease;
-  user-select: none;
-  letter-spacing: 0.02em;
-}
-
-/* Hide chrome on touch devices */
-@media (hover: none) {
-  .design-ui-credit { display: none; }
-}
-
-/* Print fixes */
-@media print {
-  * {
-    transition: none !important;
-    animation: none !important;
-    box-shadow: none !important;
-  }
-  body {
-    print-color-adjust: exact;
-    -webkit-print-color-adjust: exact;
-  }
-  .design-ui-credit { display: none !important; }
-}
-
-</style>
-<script>
-(function () {
-    // Design-ui pages are single compositions, so the whole body is editable.
-    function markEditable() {
-        document.body.classList.add('artifact-editable');
-    }
-
-    // Credit badge with idle-fade. Hover devices only.
-    function initChromeUI() {
-        if (!matchMedia('(hover: hover)').matches) return;
-
-        var credit = document.createElement('div');
-        credit.className = 'design-ui-credit';
-        credit.setAttribute('aria-hidden', 'true');
-        credit.innerHTML = '\u{1F49C} by ClickUp Brain';
-        document.body.appendChild(credit);
-
-        var timer = null;
-        var fade = function (out) { credit.style.opacity = out ? '0' : ''; };
-        fade(true);
-        var show = function () {
-            fade(false);
-            clearTimeout(timer);
-            timer = setTimeout(function () { fade(true); }, 3000);
-        };
-        document.addEventListener('mousemove', show);
-        show();
-    }
-
-    function init() {
-        markEditable();
-        initChromeUI();
-    }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
-})();
-
-</script>
-<!-- /skill:chrome -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Rikkii · Nutrición diaria</title>
@@ -91,38 +12,74 @@
 </head>
 <body>
 <div class="shell">
-<header class="top"><div><div class="kicker">Plan diario · Rikkii</div><h1 class="brand">🍽️ Plan Nutricional Rikkii</h1><p class="intro">La primera comida cambia entre desayuno y prealmuerzo. El almuerzo y la cena respetan su lógica: proteína, carbohidrato, verduras y grasa medida.</p></div><div class="actions"><button class="btn main" id="base" type="button">✦ Nueva combinación</button><button class="btn" id="saveCache" type="button">💾 Guardar Caché</button><button class="btn" id="loadCache" type="button">🔄 Cargar Caché</button><button class="btn" id="save" type="button">🖼️ Guardar hoja</button><button class="btn" id="clear" type="button">Vaciar día</button></div></header>
+<header class="top"><div><div class="kicker">Plan diario · Rikkii</div><h1 class="brand">🍽️ Plan Nutricional Rikkii</h1><p class="intro">Dieta ajustada a 5 comidas para mantener saciedad, maximizar la síntesis de proteína y llegar al déficit calórico (aprox 1500 kcal).</p></div><div class="actions"><button class="btn main" id="base" type="button">✦ Cargar Plan Nutricionista</button><button class="btn" id="saveCache" type="button">💾 Guardar Caché</button><button class="btn" id="loadCache" type="button">🔄 Cargar Caché</button><button class="btn" id="save" type="button">🖼️ Guardar hoja</button><button class="btn" id="clear" type="button">Vaciar día</button></div></header>
 <div class="context" id="context"></div>
-<div class="dashboard"><main class="meals" id="meals"></main><aside class="side"><section class="score"><div class="score-label">Balance de hoy</div><div class="score-number"><span id="kcal">0</span><span id="kcalGoal">/ -- kcal</span></div><span class="score-status" id="kcalState">Cargando...</span><p class="score-note">Tolerancia de ±5%. Stevia: 0 kcal.</p></section><section class="targets"><h3>Lectura de macros</h3><div id="targets"></div><div class="legend"><span><i class="dot" style="background:var(--sage)"></i>en rango</span><span><i class="dot" style="background:var(--sun)"></i>falta</span><span><i class="dot" style="background:var(--rose)"></i>exceso</span></div></section><section class="library"><strong>Cómo contar guisos y ensaladas</strong><p>Tomate y cebolla van como ingredientes separados. Para un guiso, registra también el aceite. Para ensalada, usa las versiones crudas.</p></section></aside></div>
+<div class="dashboard"><main class="meals" id="meals"></main><aside class="side"><section class="score"><div class="score-label">Balance de hoy</div><div class="score-number"><span id="kcal">0</span><span id="kcalGoal">/ -- kcal</span></div><span class="score-status" id="kcalState">Cargando...</span><p class="score-note">Tolerancia de ±5%. Stevia: 0 kcal.</p></section><section class="targets"><h3>Lectura de macros</h3><div id="targets"></div><div class="legend"><span><i class="dot" style="background:var(--sage)"></i>en rango</span><span><i class="dot" style="background:var(--sun)"></i>falta</span><span><i class="dot" style="background:var(--rose)"></i>exceso</span></div></section><section class="library"><strong>Notas del Plan</strong><p>Equivalencias: 120g de papa = 80g de arroz blanco. Frutas: Manzana (150g) o Fresas (200g). Si tomas Proteína Isolatada (1 scoop = ~30g), úsala en media mañana o media tarde.</p></section></aside></div>
 </div>
 <div class="sheet-overlay" id="sheetOverlay" role="dialog" aria-modal="true" aria-label="Vista previa de la hoja"><div class="sheet-modal"><div class="sheet-modal-head"><div><strong>Tu hoja del día</strong><p>Descárgala o mantén presionada la imagen para guardarla.</p></div><button class="sheet-close" id="sheetClose" type="button" aria-label="Cerrar">×</button></div><div class="sheet-scroll"><img id="sheetImg" alt="Resumen del plan nutricional del día"></div><div class="sheet-actions"><a class="btn main" id="sheetDownload" download="plan-rikkii.png">⬇ Descargar PNG</a><p class="sheet-hint">Si la descarga no arranca, mantén presionada la imagen o usa clic derecho y elige “Guardar imagen”.</p></div></div></div>
 <script>
 // ==================== CONFIGURACIÓN DE GOOGLE SHEETS ====================
 const SHEET_ID = '1oxa41au8Py4-dftxnrowWcwJ4MfioqyvjyUby2FMns8'; 
 
-// PEGA AQUÍ LA URL COMPLETA DE LA APLICACIÓN WEB QUE COPIASTE EN EL PASO 1:
+// PEGA AQUÍ LA URL COMPLETA DE LA APLICACIÓN WEB
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwJ1KEgWRuP20QejnfDKym6m8b3ucudwdQqmChVcXcz3FBqqt2nfXdqPb3LI9AmoGlerQ/exec';
 // ========================================================================
 
 let DB = {};
-let GOAL = { k: 2100, p: 160, c: 220, f: 65 }; 
+// Actualizado al nuevo estimado base de tu nutricionista (1500 kcal)
+let GOAL = { k: 1500, p: 140, c: 110, f: 55 }; 
 let NAMES = [];
 
-const PRESETS=[{name:"Desayuno · pan integral",type:"desayuno",meals:[[ ["Pan integral cuadrado",3],["Huevo",2],["Papaya",200] ],[ ["Pollo pechuga crudo",280],["Arroz blanco cocido",320],["Verduras",150],["Palta sin cascara",50] ],[ ["Pescado bonito crudo",220],["Camote cocido",250],["Aceite",8],["Fresas",150] ]]},{name:"Desayuno · avena",type:"desayuno",meals:[[ ["Avena cruda",70],["Nitro Whey",1],["Platano",120],["Manzana",150] ],[ ["Carne res magra cruda",230],["Arroz blanco cocido",300],["Verduras",150],["Aceite",8] ],[ ["Pescado tollo crudo",300],["Papa cocida",300],["Palta sin cascara",50] ]]},{name:"Prealmuerzo · pan integral",type:"prealmuerzo",meals:[[ ["Pan integral cuadrado",3],["Nitro Whey",1],["Manzana",180] ],[ ["Pollo pechuga crudo",280],["Arroz blanco cocido",320],["Verduras",150],["Aceite",8] ],[ ["Pota cruda",250],["Yuca cocida",180],["Huevo",2],["Aceituna",30] ]]}];
+const PRESETS=[{
+  name:"Plan Base Nutricionista",
+  meals:[
+    [ ["Huevo",2],["Pan integral cuadrado",2],["Palta sin cascara",30] ], // Desayuno
+    [ ["Pollo pechuga crudo",150],["Palta sin cascara",60],["Verduras",100] ], // Media Mañana
+    [ ["Carne res magra cruda",150],["Papa cocida",120],["Verduras",150] ], // Almuerzo
+    [ ["Manzana",150] ], // Media Tarde
+    [ ["Pollo pechuga crudo",150] ] // Cena (Cero carbos)
+  ]
+}];
+
 let meals=emptyMeals(),lastPreset=-1,currentPresetName="";
 
-function emptyMeals(){return[{name:"Comida 1",note:"Desayuno o prealmuerzo",rows:[]},{name:"Comida 2",note:"Almuerzo",rows:[]},{name:"Comida 3",note:"Cena",rows:[]}]}
+// Estructura actualizada a 5 comidas
+function emptyMeals(){
+  return[
+    {name:"Desayuno",note:"6:00am - 8:00am | Proteína + Carbos + Grasa",rows:[]},
+    {name:"Media Mañana",note:"11:00am | Proteína + Grasa + Verduras",rows:[]},
+    {name:"Almuerzo",note:"Mediodía | Proteína + Carbo + Ensalada",rows:[]},
+    {name:"Media Tarde",note:"Snack | Fruta fresca",rows:[]},
+    {name:"Cena",note:"Noche | Cero Carbos (Proteína + Infusión)",rows:[]}
+  ]
+}
+
 function calc(name,q){const f=DB[name],a=Number(q)||0;return f?{k:f.k*a,p:f.p*a,c:f.c*a,f:f.f*a}:{k:0,p:0,c:0,f:0}}
 function add(t,s){Object.keys(t).forEach(k=>t[k]+=s[k])}
 function totals(){const t={k:0,p:0,c:0,f:0};meals.forEach(m=>m.rows.forEach(r=>add(t,calc(r.name,r.quantity))));return t}
 function status(v,g){if(!v)return{label:"Sin datos",color:"var(--sun)"};const d=Math.abs(v-g)/g;if(d<=.05)return{label:"En objetivo",color:"var(--sage)"};return v<g?{label:"Falta",color:"var(--sun)"}:{label:"Exceso",color:"var(--rose)"}}
-function loadPreset(){let i;do{i=Math.floor(Math.random()*PRESETS.length)}while(i===lastPreset);lastPreset=i;const p=PRESETS[i];currentPresetName=p.name;meals=p.meals.map((rows,j)=>({name:`Comida ${j+1}`,note:j===0?(p.type==="desayuno"?"Desayuno · combinación de mañana":"Prealmuerzo · puente hacia el almuerzo"):j===1?"Almuerzo":"Cena",rows:rows.map(([name,quantity])=>({name,quantity}))}));document.getElementById("context").innerHTML=`<span class="pill">${p.name}</span><span class="pill">3 bloques coherentes</span>`;render()}
+
+function loadPreset(){
+  const p=PRESETS[0];
+  currentPresetName=p.name;
+  const empty = emptyMeals();
+  meals=p.meals.map((rows,j)=>({
+    name:empty[j].name,
+    note:empty[j].note,
+    rows:rows.map(([name,quantity])=>({name,quantity}))
+  }));
+  document.getElementById("context").innerHTML=`<span class="pill">${p.name}</span><span class="pill">5 comidas distribuidas</span>`;
+  render()
+}
+
 function clearDay(){meals=emptyMeals();currentPresetName="";document.getElementById("context").innerHTML="";render()}
+
 function render(){const host=document.getElementById("meals");host.innerHTML="";meals.forEach((m,mi)=>{const s=document.createElement("section");s.className="meal";s.innerHTML=header(m,mi);if(!m.rows.length)s.innerHTML+=`<div class="empty">Bloque vacío. Agrega un alimento y elige qué vas a comer.</div>`;else s.appendChild(table(m,mi));const b=document.createElement("button");b.className="add";b.type="button";b.textContent="+ Agregar alimento";b.dataset.addMeal=mi;s.appendChild(b);host.appendChild(s)});dashboard()}
 function header(m,i){const t=m.rows.reduce((x,r)=>(add(x,calc(r.name,r.quantity)),x),{k:0,p:0,c:0,f:0});return`<div class="meal-head"><div class="meal-title"><span class="meal-no">0${i+1}</span><h2>${m.name}</h2></div><div class="subtotal"><b>${Math.round(t.k)}</b> kcal · P ${Math.round(t.p)} · C ${Math.round(t.c)} · G ${Math.round(t.f)}</div></div><div class="meal-note">${m.note}</div>`}
 function table(m,mi){const w=document.createElement("div");w.className="table-wrap";w.innerHTML=`<table><thead><tr><th>Alimento</th><th>Cantidad</th><th>kcal</th><th>P</th><th>C</th><th>G</th><th></th></tr></thead><tbody></tbody></table>`;const tb=w.querySelector("tbody");m.rows.forEach((r,ri)=>tb.appendChild(row(r,mi,ri)));return w}
 function row(r,mi,ri){const v=calc(r.name,r.quantity),el=document.createElement("tr"),opts=[`<option value="">Elegir alimento</option>`,...NAMES.map(n=>`<option value="${n}" ${n===r.name?"selected":""}>${n}</option>`)].join("");el.innerHTML=`<td><select data-meal="${mi}" data-row="${ri}" data-field="name">${opts}</select></td><td><input type="number" min="0" step="1" value="${r.quantity}" data-meal="${mi}" data-row="${ri}" data-field="quantity"><span class="unit">${DB[r.name]?.u||""}</span></td><td class="kcal">${Math.round(v.k)}</td><td class="macro">${v.p.toFixed(1)}</td><td class="macro">${v.c.toFixed(1)}</td><td class="macro">${v.f.toFixed(1)}</td><td><button class="remove" type="button" title="Quitar alimento" data-remove-meal="${mi}" data-remove-row="${ri}">×</button></td>`;return el}
 function dashboard(){const t=totals(),ks=status(t.k,GOAL.k),state=document.getElementById("kcalState");document.getElementById("kcal").textContent=Math.round(t.k);document.getElementById("kcalGoal").textContent=`/ ${GOAL.k} kcal`;state.textContent=ks.label;state.style.background=ks.color;document.getElementById("targets").innerHTML=[["Proteína","p"],["Carbohidratos","c"],["Grasa","f"]].map(([l,k])=>{const s=status(t[k],GOAL[k]),pct=Math.min(t[k]/GOAL[k]*100,100);return`<div class="target"><div class="target-top"><span>${l}</span><strong>${Math.round(t[k])} / ${GOAL[k]} g</strong></div><div class="track"><div class="fill" style="width:${pct}%;background:${s.color}"></div></div><small>${s.label} · ${Math.round(t[k]/GOAL[k]*100)}% de la meta</small></div>`}).join("")}
+
 function sheetCanvas(){const t=totals(),W=840,p=46,scale=2,rows=meals.reduce((n,m)=>n+Math.max(m.rows.length,1),0),H=360+rows*34+meals.length*54,cv=document.createElement("canvas"),c=cv.getContext("2d");cv.width=W*scale;cv.height=H*scale;c.scale(scale,scale);c.fillStyle="#F4EFE4";c.fillRect(0,0,W,H);const f="Inter,system-ui,sans-serif";let y=p;c.fillStyle="#B0543C";c.font=`800 12px ${f}`;c.fillText("PLAN DIARIO · RIKKII",p,y);y+=40;c.fillStyle="#37312A";c.font=`850 34px ${f}`;c.fillText("Plan Nutricional Rikkii",p,y);y+=25;c.fillStyle="#7C7367";c.font=`600 14px ${f}`;c.fillText(`${currentPresetName||"Plan personalizado"} · ${new Date().toLocaleDateString("es-PE")}`,p,y);y+=28;c.strokeStyle="#DCD4C4";c.beginPath();c.moveTo(p,y);c.lineTo(W-p,y);c.stroke();y+=28;const cols=[W-p,W-p-58,W-p-116,W-p-178,W-p-268];meals.forEach((m,i)=>{const st=m.rows.reduce((x,r)=>(add(x,calc(r.name,r.quantity)),x),{k:0,p:0,c:0,f:0});c.fillStyle="#B0543C";c.font=`850 12px ${f}`;c.textAlign="left";c.fillText(`0${i+1}`,p,y);c.fillStyle="#37312A";c.font=`800 18px ${f}`;c.fillText(m.name,p+26,y);c.fillStyle="#7C7367";c.font=`700 14px ${f}`;c.textAlign="right";c.fillText(`${Math.round(st.k)} kcal`,W-p,y);c.textAlign="left";y+=21;c.fillStyle="#7C7367";c.font=`500 12px ${f}`;c.fillText(m.note,p+26,y);y+=21;c.fillStyle="#A79D8E";c.font=`700 10px ${f}`;c.fillText("ALIMENTO",p,y);c.textAlign="right";["CANT.","KCAL","P","C","G"].forEach((x,j)=>c.fillText(x,cols[4-j],y));c.textAlign="left";y+=18;(m.rows.length?m.rows:[{name:"Sin alimentos",quantity:0}]).forEach(r=>{const v=calc(r.name,r.quantity);c.fillStyle="#37312A";c.font=`600 13px ${f}`;c.fillText(r.name,p,y);c.textAlign="right";c.fillStyle="#7C7367";c.font=`500 13px ${f}`;c.fillText(`${Math.round(r.quantity)} ${DB[r.name]?.u||""}`,cols[4],y);c.fillText(Math.round(v.k),cols[3],y);c.fillText(v.p.toFixed(1),cols[2],y);c.fillText(v.c.toFixed(1),cols[1],y);c.fillText(v.f.toFixed(1),cols[0],y);c.textAlign="left";y+=28});c.fillStyle="#7C7367";c.font=`600 12px ${f}`;c.textAlign="right";c.fillText(`P ${Math.round(st.p)} g · C ${Math.round(st.c)} g · G ${Math.round(st.f)} g`,W-p,y);c.textAlign="left";y+=32});c.fillStyle="#37312A";c.beginPath();c.roundRect(p,y,W-2*p,190,20);c.fill();c.fillStyle="#F2EDE2";c.font=`700 12px ${f}`;c.fillText("BALANCE DEL DÍA",p+26,y+34);c.font=`850 44px ${f}`;c.fillText(`${Math.round(t.k)}`,p+26,y+80);c.fillStyle="#B8B0A2";c.font=`600 16px ${f}`;c.fillText(`/ ${GOAL.k} kcal`,p+170,y+80);let by=y+116;[["Proteína","p"],["Carbohidratos","c"],["Grasa","f"]].forEach(([l,k])=>{c.fillStyle="#F2EDE2";c.font=`600 13px ${f}`;c.textAlign="left";c.fillText(l,p+26,by);c.textAlign="right";c.fillStyle="#B8B0A2";c.fillText(`${Math.round(t[k])} / ${GOAL[k]} g`,W-p-26,by);by+=22});return cv}
 function generateImage(){if(!totals().k){alert("El día está vacío.");return}const url=sheetCanvas().toDataURL("image/png"),stamp=new Date().toISOString().slice(0,10);document.getElementById("sheetImg").src=url;const a=document.getElementById("sheetDownload");a.href=url;a.download=`plan-rikkii-${stamp}.png`;document.getElementById("sheetOverlay").classList.add("open")}
 
@@ -153,7 +110,7 @@ function parseAlimentos(csvText) {
 
 function parseMetas(csvText) {
   const rows = parseCSV(csvText);
-  const newGoal = { k: 2100, p: 160, c: 220, f: 65 };
+  const newGoal = { k: 1500, p: 140, c: 110, f: 55 }; // Valores por defecto basados en el plan
   for (let i = 1; i < rows.length; i++) {
     const row = rows[i];
     if (!row || row.length < 2) continue;
@@ -192,12 +149,12 @@ async function fetchGoogleSheetsData() {
     NAMES.length = 0;
     NAMES.push(...Object.keys(DB).sort((a,b)=>a.localeCompare(b,"es")));
 
-    loadPreset();
+    loadPreset(); // Carga el plan base del nutricionista automáticamente
   } catch (err) {
     console.error("Error cargando Google Sheets:", err);
     host.innerHTML = `
       <div class="empty" style="color:var(--rose)">
-        ⚠️ <strong>Error al cargar la base de datos nutritional</strong><br>
+        ⚠️ <strong>Error al cargar la base de datos nutricional</strong><br>
         <span style="font-size:0.8rem; display:block; margin-top:8px;">
           Por favor, verifica que el SHEET_ID sea correcto y que la hoja esté compartida en "Cualquier persona con el enlace".
         </span>
@@ -209,7 +166,7 @@ async function fetchGoogleSheetsData() {
 // ==================== LÓGICA DE SISTEMA DE CACHÉ NATIVO ====================
 async function saveCache() {
   if (!SCRIPT_URL || SCRIPT_URL.includes('TU_URL_DE_APPS_SCRIPT')) {
-    alert("⚠️ Debes configurar la constante SCRIPT_URL con tu enlace obtenido en el Paso 1.");
+    alert("⚠️ Debes configurar la constante SCRIPT_URL.");
     return;
   }
   const btn = document.getElementById("saveCache");
@@ -239,7 +196,7 @@ async function saveCache() {
 
 async function loadCache() {
   if (!SCRIPT_URL || SCRIPT_URL.includes('TU_URL_DE_APPS_SCRIPT')) {
-    alert("⚠️ Debes configurar la constante SCRIPT_URL con tu enlace obtenido en el Paso 1.");
+    alert("⚠️ Debes configurar la constante SCRIPT_URL.");
     return;
   }
   const btn = document.getElementById("loadCache");
