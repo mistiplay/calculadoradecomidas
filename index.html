@@ -12,45 +12,65 @@
 </head>
 <body>
 <div class="shell">
-<header class="top"><div><div class="kicker">Plan diario · Rikkii</div><h1 class="brand">🍽️ Plan Nutricional Rikkii</h1><p class="intro">Dieta ajustada a 5 comidas para mantener saciedad, maximizar la síntesis de proteína y llegar al déficit calórico (aprox 1500 kcal).</p></div><div class="actions"><button class="btn main" id="base" type="button">✦ Cargar Plan Nutricionista</button><button class="btn" id="saveCache" type="button">💾 Guardar Caché</button><button class="btn" id="loadCache" type="button">🔄 Cargar Caché</button><button class="btn" id="save" type="button">🖼️ Guardar hoja</button><button class="btn" id="clear" type="button">Vaciar día</button></div></header>
+<header class="top"><div><div class="kicker">Plan diario · Rikkii</div><h1 class="brand">🍽️ Plan Nutricional Rikkii</h1><p class="intro">Presiona "Intercambiar Opciones" para rotar entre los días permitidos por tu nutricionista. No olvides tomar Omega 3 y Vitamina C.</p></div><div class="actions"><button class="btn main" id="base" type="button">✦ Intercambiar Opciones (Plan)</button><button class="btn" id="saveCache" type="button">💾 Guardar Caché</button><button class="btn" id="loadCache" type="button">🔄 Cargar Caché</button><button class="btn" id="save" type="button">🖼️ Guardar hoja</button><button class="btn" id="clear" type="button">Vaciar día</button></div></header>
 <div class="context" id="context"></div>
-<div class="dashboard"><main class="meals" id="meals"></main><aside class="side"><section class="score"><div class="score-label">Balance de hoy</div><div class="score-number"><span id="kcal">0</span><span id="kcalGoal">/ -- kcal</span></div><span class="score-status" id="kcalState">Cargando...</span><p class="score-note">Tolerancia de ±5%. Stevia: 0 kcal.</p></section><section class="targets"><h3>Lectura de macros</h3><div id="targets"></div><div class="legend"><span><i class="dot" style="background:var(--sage)"></i>en rango</span><span><i class="dot" style="background:var(--sun)"></i>falta</span><span><i class="dot" style="background:var(--rose)"></i>exceso</span></div></section><section class="library"><strong>Notas del Plan</strong><p>Equivalencias: 120g de papa = 80g de arroz blanco. Frutas: Manzana (150g) o Fresas (200g). Si tomas Proteína Isolatada (1 scoop = ~30g), úsala en media mañana o media tarde.</p></section></aside></div>
+<div class="dashboard"><main class="meals" id="meals"></main><aside class="side"><section class="score"><div class="score-label">Balance de hoy</div><div class="score-number"><span id="kcal">0</span><span id="kcalGoal">/ -- kcal</span></div><span class="score-status" id="kcalState">Cargando...</span><p class="score-note">Tolerancia de ±5%. Stevia e infusiones: 0 kcal.</p></section><section class="targets"><h3>Lectura de macros</h3><div id="targets"></div><div class="legend"><span><i class="dot" style="background:var(--sage)"></i>en rango</span><span><i class="dot" style="background:var(--sun)"></i>falta</span><span><i class="dot" style="background:var(--rose)"></i>exceso</span></div></section><section class="library"><strong>Guía de Equivalencias</strong><p>120g de papa = 120g de camote = <strong>80g de arroz blanco</strong>.<br><br>Frutas: 150g Manzana o Pera = 200g Fresas = 120g Mandarina.<br><br>Atún: 1 lata escurrida pesa aprox 120g.</p></section></aside></div>
 </div>
 <div class="sheet-overlay" id="sheetOverlay" role="dialog" aria-modal="true" aria-label="Vista previa de la hoja"><div class="sheet-modal"><div class="sheet-modal-head"><div><strong>Tu hoja del día</strong><p>Descárgala o mantén presionada la imagen para guardarla.</p></div><button class="sheet-close" id="sheetClose" type="button" aria-label="Cerrar">×</button></div><div class="sheet-scroll"><img id="sheetImg" alt="Resumen del plan nutricional del día"></div><div class="sheet-actions"><a class="btn main" id="sheetDownload" download="plan-rikkii.png">⬇ Descargar PNG</a><p class="sheet-hint">Si la descarga no arranca, mantén presionada la imagen o usa clic derecho y elige “Guardar imagen”.</p></div></div></div>
 <script>
 // ==================== CONFIGURACIÓN DE GOOGLE SHEETS ====================
 const SHEET_ID = '1oxa41au8Py4-dftxnrowWcwJ4MfioqyvjyUby2FMns8'; 
-
-// PEGA AQUÍ LA URL COMPLETA DE LA APLICACIÓN WEB
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwJ1KEgWRuP20QejnfDKym6m8b3ucudwdQqmChVcXcz3FBqqt2nfXdqPb3LI9AmoGlerQ/exec';
 // ========================================================================
 
 let DB = {};
-// Actualizado al nuevo estimado base de tu nutricionista (1500 kcal)
-let GOAL = { k: 1500, p: 140, c: 110, f: 55 }; 
+// Valores meta: déficit agresivo pero protegiendo músculo
+let GOAL = { k: 1400, p: 140, c: 110, f: 55 }; 
 let NAMES = [];
 
-const PRESETS=[{
-  name:"Plan Base Nutricionista",
-  meals:[
-    [ ["Huevo",2],["Pan integral cuadrado",2],["Palta sin cascara",30] ], // Desayuno
-    [ ["Pollo pechuga crudo",150],["Palta sin cascara",60],["Verduras",100] ], // Media Mañana
-    [ ["Carne res magra cruda",150],["Papa cocida",120],["Verduras",150] ], // Almuerzo
-    [ ["Manzana",150] ], // Media Tarde
-    [ ["Pollo pechuga crudo",150] ] // Cena (Cero carbos)
-  ]
-}];
+// Aquí están las 3 opciones de tu dieta configuradas
+const PRESETS=[
+  {
+    name:"Opción 1: Clásico Nutricionista",
+    meals:[
+      [ ["Huevo",2],["Huevo sin yema",1],["Tostada integral",2],["Palta sin cascara",30] ], 
+      [ ["Pollo pechuga crudo",150],["Palta sin cascara",30],["Verduras",150] ], 
+      [ ["Carne res magra cruda",150],["Papa cocida",120],["Verduras",150] ], 
+      [ ["Manzana",150] ], 
+      [ ["Atún en agua (escurrido)",120] ] 
+    ]
+  },
+  {
+    name:"Opción 2: Rápida y Whey Protein",
+    meals:[
+      [ ["Yogurt Griego sin azúcar",200],["Rapiditas Cero Cero",1],["Palta sin cascara",30] ], 
+      [ ["Nitro Whey",1],["Palta sin cascara",30] ], 
+      [ ["Pollo pechuga crudo",150],["Arroz blanco cocido",80],["Tomate crudo",100] ], 
+      [ ["Fresas",200] ], 
+      [ ["Pollo pechuga crudo",150] ] 
+    ]
+  },
+  {
+    name:"Opción 3: Pescado y Camote",
+    meals:[
+      [ ["Huevo",2],["Huevo sin yema",1],["Tostada integral",2],["Palta sin cascara",30] ], 
+      [ ["Pescado tollo crudo",150],["Verduras",100],["Aceite de Oliva Hacendado",5] ], 
+      [ ["Pollo pechuga crudo",150],["Camote cocido",120],["Zanahoria cruda",100] ], 
+      [ ["Mandarina",120] ], 
+      [ ["Cerdo magro crudo",150] ] 
+    ]
+  }
+];
 
 let meals=emptyMeals(),lastPreset=-1,currentPresetName="";
 
-// Estructura actualizada a 5 comidas
 function emptyMeals(){
   return[
     {name:"Desayuno",note:"6:00am - 8:00am | Proteína + Carbos + Grasa",rows:[]},
     {name:"Media Mañana",note:"11:00am | Proteína + Grasa + Verduras",rows:[]},
     {name:"Almuerzo",note:"Mediodía | Proteína + Carbo + Ensalada",rows:[]},
-    {name:"Media Tarde",note:"Snack | Fruta fresca",rows:[]},
-    {name:"Cena",note:"Noche | Cero Carbos (Proteína + Infusión)",rows:[]}
+    {name:"Media Tarde",note:"Snack | 1 porción de fruta fresca",rows:[]},
+    {name:"Cena",note:"Noche | 0 Carbos (Proteína magra + Infusión)",rows:[]}
   ]
 }
 
@@ -59,21 +79,28 @@ function add(t,s){Object.keys(t).forEach(k=>t[k]+=s[k])}
 function totals(){const t={k:0,p:0,c:0,f:0};meals.forEach(m=>m.rows.forEach(r=>add(t,calc(r.name,r.quantity))));return t}
 function status(v,g){if(!v)return{label:"Sin datos",color:"var(--sun)"};const d=Math.abs(v-g)/g;if(d<=.05)return{label:"En objetivo",color:"var(--sage)"};return v<g?{label:"Falta",color:"var(--sun)"}:{label:"Exceso",color:"var(--rose)"}}
 
+// Lógica de rotación de presets
 function loadPreset(){
-  const p=PRESETS[0];
-  currentPresetName=p.name;
+  if(NAMES.length === 0) return; // Esperar a que cargue Sheets
+  lastPreset = (lastPreset + 1) % PRESETS.length; // Cambia entre 0, 1 y 2 en bucle
+  const p = PRESETS[lastPreset];
+  currentPresetName = p.name;
   const empty = emptyMeals();
-  meals=p.meals.map((rows,j)=>({
-    name:empty[j].name,
-    note:empty[j].note,
-    rows:rows.map(([name,quantity])=>({name,quantity}))
+  
+  // Limpiamos los alimentos que no existan en la BD (por si no has copiado el Yogurt aún)
+  meals = p.meals.map((rows, j) => ({
+    name: empty[j].name,
+    note: empty[j].note,
+    rows: rows
+      .filter(([name]) => DB[name]) // Solo carga si existe en tu Drive
+      .map(([name, quantity]) => ({name, quantity}))
   }));
-  document.getElementById("context").innerHTML=`<span class="pill">${p.name}</span><span class="pill">5 comidas distribuidas</span>`;
+  
+  document.getElementById("context").innerHTML=`<span class="pill">${p.name}</span><span class="pill">Equivalencia ${lastPreset + 1} de 3</span>`;
   render()
 }
 
 function clearDay(){meals=emptyMeals();currentPresetName="";document.getElementById("context").innerHTML="";render()}
-
 function render(){const host=document.getElementById("meals");host.innerHTML="";meals.forEach((m,mi)=>{const s=document.createElement("section");s.className="meal";s.innerHTML=header(m,mi);if(!m.rows.length)s.innerHTML+=`<div class="empty">Bloque vacío. Agrega un alimento y elige qué vas a comer.</div>`;else s.appendChild(table(m,mi));const b=document.createElement("button");b.className="add";b.type="button";b.textContent="+ Agregar alimento";b.dataset.addMeal=mi;s.appendChild(b);host.appendChild(s)});dashboard()}
 function header(m,i){const t=m.rows.reduce((x,r)=>(add(x,calc(r.name,r.quantity)),x),{k:0,p:0,c:0,f:0});return`<div class="meal-head"><div class="meal-title"><span class="meal-no">0${i+1}</span><h2>${m.name}</h2></div><div class="subtotal"><b>${Math.round(t.k)}</b> kcal · P ${Math.round(t.p)} · C ${Math.round(t.c)} · G ${Math.round(t.f)}</div></div><div class="meal-note">${m.note}</div>`}
 function table(m,mi){const w=document.createElement("div");w.className="table-wrap";w.innerHTML=`<table><thead><tr><th>Alimento</th><th>Cantidad</th><th>kcal</th><th>P</th><th>C</th><th>G</th><th></th></tr></thead><tbody></tbody></table>`;const tb=w.querySelector("tbody");m.rows.forEach((r,ri)=>tb.appendChild(row(r,mi,ri)));return w}
@@ -86,9 +113,7 @@ function generateImage(){if(!totals().k){alert("El día está vacío.");return}c
 // ==================== LÓGICA DE PARSEO CSV / GOOGLE SHEETS ====================
 function parseCSV(text) {
   const lines = text.split(/\r?\n/);
-  return lines.map(line => {
-    return line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(cell => cell.replace(/^"|"$/g, '').trim());
-  });
+  return lines.map(line => line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(cell => cell.replace(/^"|"$/g, '').trim()));
 }
 
 function parseAlimentos(csvText) {
@@ -110,7 +135,7 @@ function parseAlimentos(csvText) {
 
 function parseMetas(csvText) {
   const rows = parseCSV(csvText);
-  const newGoal = { k: 1500, p: 140, c: 110, f: 55 }; // Valores por defecto basados en el plan
+  const newGoal = { k: 1400, p: 140, c: 110, f: 55 }; // Valores ajustados por defecto
   for (let i = 1; i < rows.length; i++) {
     const row = rows[i];
     if (!row || row.length < 2) continue;
@@ -149,14 +174,14 @@ async function fetchGoogleSheetsData() {
     NAMES.length = 0;
     NAMES.push(...Object.keys(DB).sort((a,b)=>a.localeCompare(b,"es")));
 
-    loadPreset(); // Carga el plan base del nutricionista automáticamente
+    loadPreset(); // Carga la primera opción al iniciar
   } catch (err) {
     console.error("Error cargando Google Sheets:", err);
     host.innerHTML = `
       <div class="empty" style="color:var(--rose)">
         ⚠️ <strong>Error al cargar la base de datos nutricional</strong><br>
         <span style="font-size:0.8rem; display:block; margin-top:8px;">
-          Por favor, verifica que el SHEET_ID sea correcto y que la hoja esté compartida en "Cualquier persona con el enlace".
+          Asegúrate de que la hoja de Google Sheets sea pública.
         </span>
       </div>
     `;
