@@ -14,7 +14,7 @@
 <div class="shell">
 <header class="top"><div><div class="kicker">Plan diario · Rikkii</div><h1 class="brand">🍽️ Plan Nutricional Rikkii</h1><p class="intro">Presiona "Intercambiar Opciones" para rotar entre los días permitidos por tu nutricionista. No olvides tomar Omega 3 y Vitamina C.</p></div><div class="actions"><button class="btn main" id="base" type="button">✦ Intercambiar Opciones (Plan)</button><button class="btn" id="saveCache" type="button">💾 Guardar Caché</button><button class="btn" id="loadCache" type="button">🔄 Cargar Caché</button><button class="btn" id="save" type="button">🖼️ Guardar hoja</button><button class="btn" id="clear" type="button">Vaciar día</button></div></header>
 <div class="context" id="context"></div>
-<div class="dashboard"><main class="meals" id="meals"></main><aside class="side"><section class="score"><div class="score-label">Balance de hoy</div><div class="score-number"><span id="kcal">0</span><span id="kcalGoal">/ -- kcal</span></div><span class="score-status" id="kcalState">Cargando...</span><p class="score-note">Tolerancia de ±5%. Stevia e infusiones: 0 kcal.</p></section><section class="targets"><h3>Lectura de macros</h3><div id="targets"></div><div class="legend"><span><i class="dot" style="background:var(--sage)"></i>en rango</span><span><i class="dot" style="background:var(--sun)"></i>falta</span><span><i class="dot" style="background:var(--rose)"></i>exceso</span></div></section><section class="library"><strong>Guía de Equivalencias</strong><p>120g de papa = 120g de camote = <strong>80g de arroz blanco</strong>.<br><br>Frutas: 150g Manzana o Pera = 200g Fresas = 120g Mandarina.<br><br>Atún: 1 lata escurrida pesa aprox 120g.</p></section></aside></div>
+<div class="dashboard"><main class="meals" id="meals"></main><aside class="side"><section class="score"><div class="score-label">Balance de hoy</div><div class="score-number"><span id="kcal">0</span><span id="kcalGoal">/ -- kcal</span></div><span class="score-status" id="kcalState">Cargando...</span><p class="score-note">Tolerancia de ±5%. Stevia e infusiones: 0 kcal.</p></section><section class="targets"><h3>Lectura de macros</h3><div id="targets"></div><div class="legend"><span><i class="dot" style="background:var(--sage)"></i>en rango</span><span><i class="dot" style="background:var(--sun)"></i>falta</span><span><i class="dot" style="background:var(--rose)"></i>exceso</span></div></section><section class="library"><strong>Guisos y Comidas de Casa</strong><p>Para no aburrirte, usa la regla de "Deconstrucción".<br><br><strong>Ejemplo Ají de Gallina:</strong> Registra 100g Pollo cocido + 80g Arroz + 50g Papa. Para la salsa registra: 10g Aceite + 1/2 Pan.<br><br>¡Así comes rico y trackeas perfecto!</p></section></aside></div>
 </div>
 <div class="sheet-overlay" id="sheetOverlay" role="dialog" aria-modal="true" aria-label="Vista previa de la hoja"><div class="sheet-modal"><div class="sheet-modal-head"><div><strong>Tu hoja del día</strong><p>Descárgala o mantén presionada la imagen para guardarla.</p></div><button class="sheet-close" id="sheetClose" type="button" aria-label="Cerrar">×</button></div><div class="sheet-scroll"><img id="sheetImg" alt="Resumen del plan nutricional del día"></div><div class="sheet-actions"><a class="btn main" id="sheetDownload" download="plan-rikkii.png">⬇ Descargar PNG</a><p class="sheet-hint">Si la descarga no arranca, mantén presionada la imagen o usa clic derecho y elige “Guardar imagen”.</p></div></div></div>
 <script>
@@ -24,40 +24,40 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwJ1KEgWRuP20QejnfDK
 // ========================================================================
 
 let DB = {};
-// Valores meta: déficit agresivo pero protegiendo músculo
-let GOAL = { k: 1400, p: 140, c: 110, f: 55 }; 
+// Meta ajustada considerando los aceites de preparación (~1450 kcal)
+let GOAL = { k: 1450, p: 140, c: 110, f: 52 }; 
 let NAMES = [];
 
-// Aquí están las 3 opciones de tu dieta configuradas
+// Opciones actualizadas con salteados (verduras+aceite) y desayuno completo
 const PRESETS=[
   {
-    name:"Opción 1: Clásico Nutricionista",
+    name:"Opción 1: Desayuno Full (Huevos+Yogurt)",
     meals:[
-      [ ["Huevo",2],["Huevo sin yema",1],["Tostada integral",2],["Palta sin cascara",30] ], 
-      [ ["Pollo pechuga crudo",150],["Palta sin cascara",30],["Verduras",150] ], 
-      [ ["Carne res magra cruda",150],["Papa cocida",120],["Verduras",150] ], 
+      [ ["Huevo",2],["Huevo sin yema",1],["Yogurt Griego sin azúcar",200],["Tostada integral",2],["Palta sin cascara",30] ], 
+      [ ["Pollo pechuga crudo",150],["Tomate crudo",80],["Cebolla cruda",50],["Aceite",5] ], // Pollo salteado
+      [ ["Carne res magra cruda",150],["Papa cocida",150],["Verduras",100],["Aceite",5] ], 
       [ ["Manzana",150] ], 
-      [ ["Atún en agua (escurrido)",120] ] 
+      [ ["Atún en agua (escurrido)",120],["Tomate crudo",100],["Aceite",5] ] 
     ]
   },
   {
-    name:"Opción 2: Rápida y Whey Protein",
+    name:"Opción 2: Desayuno Pechuga + Whey",
     meals:[
-      [ ["Yogurt Griego sin azúcar",200],["Rapiditas Cero Cero",1],["Palta sin cascara",30] ], 
+      [ ["Pollo pechuga crudo",150],["Rapiditas Cero Cero",1],["Palta sin cascara",40],["Aceite",5] ], 
       [ ["Nitro Whey",1],["Palta sin cascara",30] ], 
-      [ ["Pollo pechuga crudo",150],["Arroz blanco cocido",80],["Tomate crudo",100] ], 
+      [ ["Pollo pechuga crudo",150],["Arroz blanco cocido",80],["Verduras",100],["Aceite",8] ], 
       [ ["Fresas",200] ], 
-      [ ["Pollo pechuga crudo",150] ] 
+      [ ["Cerdo magro crudo",150],["Tomate crudo",100],["Aceite",5] ] 
     ]
   },
   {
     name:"Opción 3: Pescado y Camote",
     meals:[
-      [ ["Huevo",2],["Huevo sin yema",1],["Tostada integral",2],["Palta sin cascara",30] ], 
-      [ ["Pescado tollo crudo",150],["Verduras",100],["Aceite de Oliva Hacendado",5] ], 
-      [ ["Pollo pechuga crudo",150],["Camote cocido",120],["Zanahoria cruda",100] ], 
+      [ ["Huevo",2],["Huevo sin yema",1],["Yogurt Griego sin azúcar",200],["Tostada integral",2],["Palta sin cascara",30] ], 
+      [ ["Pescado tollo crudo",150],["Tomate crudo",80],["Cebolla cruda",50],["Aceite",5] ], 
+      [ ["Pollo pechuga crudo",150],["Camote cocido",120],["Zanahoria cruda",100],["Aceite",5] ], 
       [ ["Mandarina",120] ], 
-      [ ["Cerdo magro crudo",150] ] 
+      [ ["Pollo pechuga crudo",150],["Aceite",5] ] 
     ]
   }
 ];
@@ -79,20 +79,18 @@ function add(t,s){Object.keys(t).forEach(k=>t[k]+=s[k])}
 function totals(){const t={k:0,p:0,c:0,f:0};meals.forEach(m=>m.rows.forEach(r=>add(t,calc(r.name,r.quantity))));return t}
 function status(v,g){if(!v)return{label:"Sin datos",color:"var(--sun)"};const d=Math.abs(v-g)/g;if(d<=.05)return{label:"En objetivo",color:"var(--sage)"};return v<g?{label:"Falta",color:"var(--sun)"}:{label:"Exceso",color:"var(--rose)"}}
 
-// Lógica de rotación de presets
 function loadPreset(){
-  if(NAMES.length === 0) return; // Esperar a que cargue Sheets
-  lastPreset = (lastPreset + 1) % PRESETS.length; // Cambia entre 0, 1 y 2 en bucle
+  if(NAMES.length === 0) return; 
+  lastPreset = (lastPreset + 1) % PRESETS.length; 
   const p = PRESETS[lastPreset];
   currentPresetName = p.name;
   const empty = emptyMeals();
   
-  // Limpiamos los alimentos que no existan en la BD (por si no has copiado el Yogurt aún)
   meals = p.meals.map((rows, j) => ({
     name: empty[j].name,
     note: empty[j].note,
     rows: rows
-      .filter(([name]) => DB[name]) // Solo carga si existe en tu Drive
+      .filter(([name]) => DB[name]) 
       .map(([name, quantity]) => ({name, quantity}))
   }));
   
@@ -135,7 +133,7 @@ function parseAlimentos(csvText) {
 
 function parseMetas(csvText) {
   const rows = parseCSV(csvText);
-  const newGoal = { k: 1400, p: 140, c: 110, f: 55 }; // Valores ajustados por defecto
+  const newGoal = { k: 1450, p: 140, c: 110, f: 52 }; 
   for (let i = 1; i < rows.length; i++) {
     const row = rows[i];
     if (!row || row.length < 2) continue;
@@ -151,7 +149,7 @@ function parseMetas(csvText) {
 
 async function fetchGoogleSheetsData() {
   const host = document.getElementById("meals");
-  host.innerHTML = `<div class="empty">⏳ Conectando con Google Sheets y descargando alimentos...</div>`;
+  host.innerHTML = `<div class="empty">⏳ Conectando con Google Sheets...</div>`;
   
   try {
     const urlAlimentos = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Alimentos`;
@@ -174,83 +172,37 @@ async function fetchGoogleSheetsData() {
     NAMES.length = 0;
     NAMES.push(...Object.keys(DB).sort((a,b)=>a.localeCompare(b,"es")));
 
-    loadPreset(); // Carga la primera opción al iniciar
+    loadPreset(); 
   } catch (err) {
     console.error("Error cargando Google Sheets:", err);
-    host.innerHTML = `
-      <div class="empty" style="color:var(--rose)">
-        ⚠️ <strong>Error al cargar la base de datos nutricional</strong><br>
-        <span style="font-size:0.8rem; display:block; margin-top:8px;">
-          Asegúrate de que la hoja de Google Sheets sea pública.
-        </span>
-      </div>
-    `;
+    host.innerHTML = `<div class="empty" style="color:var(--rose)">⚠️ <strong>Error al cargar la base de datos nutricional</strong></div>`;
   }
 }
 
-// ==================== LÓGICA DE SISTEMA DE CACHÉ NATIVO ====================
 async function saveCache() {
-  if (!SCRIPT_URL || SCRIPT_URL.includes('TU_URL_DE_APPS_SCRIPT')) {
-    alert("⚠️ Debes configurar la constante SCRIPT_URL.");
-    return;
-  }
-  const btn = document.getElementById("saveCache");
-  const origText = btn.textContent;
-  btn.textContent = "⏳ Guardando...";
-  btn.disabled = true;
-
+  if (!SCRIPT_URL || SCRIPT_URL.includes('TU_URL_DE_APPS_SCRIPT')) return alert("⚠️ Configura SCRIPT_URL.");
+  const btn = document.getElementById("saveCache"), origText = btn.textContent;
+  btn.textContent = "⏳ Guardando..."; btn.disabled = true;
   try {
-    const response = await fetch(SCRIPT_URL, {
-      method: "POST",
-      body: JSON.stringify(meals)
-    });
-    const res = await response.json();
-    if (res.status === "success") {
-      alert("💾 ¡Caché del menú guardada perfectamente en Google Sheets!");
-    } else {
-      throw new Error();
-    }
-  } catch (err) {
-    console.error(err);
-    alert("❌ Error al conectar con el servidor de guardado. Revisa tu SCRIPT_URL.");
-  } finally {
-    btn.textContent = origText;
-    btn.disabled = false;
-  }
+    const res = await (await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(meals) })).json();
+    if (res.status === "success") alert("💾 ¡Caché guardada!"); else throw new Error();
+  } catch (err) { alert("❌ Error al guardar."); } finally { btn.textContent = origText; btn.disabled = false; }
 }
 
 async function loadCache() {
-  if (!SCRIPT_URL || SCRIPT_URL.includes('TU_URL_DE_APPS_SCRIPT')) {
-    alert("⚠️ Debes configurar la constante SCRIPT_URL.");
-    return;
-  }
-  const btn = document.getElementById("loadCache");
-  const origText = btn.textContent;
-  btn.textContent = "⏳ Descargando...";
-  btn.disabled = true;
-
+  if (!SCRIPT_URL || SCRIPT_URL.includes('TU_URL_DE_APPS_SCRIPT')) return alert("⚠️ Configura SCRIPT_URL.");
+  const btn = document.getElementById("loadCache"), origText = btn.textContent;
+  btn.textContent = "⏳ Descargando..."; btn.disabled = true;
   try {
-    const response = await fetch(SCRIPT_URL);
-    const data = await response.json();
+    const data = await (await fetch(SCRIPT_URL)).json();
     if (Array.isArray(data) && data.length > 0) {
-      meals = data;
-      currentPresetName = "Menú recuperado de la Caché";
-      document.getElementById("context").innerHTML = `<span class="pill">🔄 Caché Activa desde la Nube</span>`;
-      render();
-      alert("🔄 ¡Menú recuperado con éxito! Puedes seguir editándolo.");
-    } else {
-      alert("⚠️ No hay ningún menú guardado en la caché todavía.");
-    }
-  } catch (err) {
-    console.error(err);
-    alert("❌ Error al descargar tu menú. Revisa tu SCRIPT_URL o conexión.");
-  } finally {
-    btn.textContent = origText;
-    btn.disabled = false;
-  }
+      meals = data; currentPresetName = "Menú recuperado";
+      document.getElementById("context").innerHTML = `<span class="pill">🔄 Caché Activa</span>`;
+      render(); alert("🔄 ¡Menú recuperado!");
+    } else alert("⚠️ No hay caché.");
+  } catch (err) { alert("❌ Error al descargar."); } finally { btn.textContent = origText; btn.disabled = false; }
 }
 
-// ==================== EVENTOS Y DISPARADORES ====================
 document.addEventListener("change",e=>{const el=e.target,{meal,row,field}=el.dataset;if(meal===undefined)return;meals[+meal].rows[+row][field]=field==="quantity"?Number(el.value)||0:el.value;render()});document.addEventListener("click",e=>{const el=e.target;if(el.dataset.addMeal!==undefined){meals[+el.dataset.addMeal].rows.push({name:"",quantity:0});render();return}if(el.dataset.removeMeal!==undefined){meals[+el.dataset.removeMeal].rows.splice(+el.dataset.removeRow,1);render()}});
 document.getElementById("base").onclick=loadPreset;
 document.getElementById("clear").onclick=clearDay;
