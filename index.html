@@ -12,9 +12,9 @@
 </head>
 <body>
 <div class="shell">
-<header class="top"><div><div class="kicker">Plan diario · Rikkii</div><h1 class="brand">🍽️ Plan Nutricional Rikkii</h1><p class="intro">Presiona "Intercambiar Opciones" para rotar entre los días permitidos por tu nutricionista. No olvides tomar Omega 3 y Vitamina C.</p></div><div class="actions"><button class="btn main" id="base" type="button">✦ Intercambiar Opciones (Plan)</button><button class="btn" id="saveCache" type="button">💾 Guardar Caché</button><button class="btn" id="loadCache" type="button">🔄 Cargar Caché</button><button class="btn" id="save" type="button">🖼️ Guardar hoja</button><button class="btn" id="clear" type="button">Vaciar día</button></div></header>
+<header class="top"><div><div class="kicker">Plan diario · Rikkii</div><h1 class="brand">🍽️ Plan Nutricional Rikkii</h1><p class="intro">Presiona "Intercambiar Opciones" para rotar entre los días configurados en tu Google Sheets. ¡No olvides tus vitaminas y Omega 3!</p></div><div class="actions"><button class="btn main" id="base" type="button">✦ Intercambiar Opciones (Sheets)</button><button class="btn" id="saveCache" type="button">💾 Guardar Caché</button><button class="btn" id="loadCache" type="button">🔄 Cargar Caché</button><button class="btn" id="save" type="button">🖼️ Guardar hoja</button><button class="btn" id="clear" type="button">Vaciar día</button></div></header>
 <div class="context" id="context"></div>
-<div class="dashboard"><main class="meals" id="meals"></main><aside class="side"><section class="score"><div class="score-label">Balance de hoy</div><div class="score-number"><span id="kcal">0</span><span id="kcalGoal">/ -- kcal</span></div><span class="score-status" id="kcalState">Cargando...</span><p class="score-note">Tolerancia de ±5%. Stevia e infusiones: 0 kcal.</p></section><section class="targets"><h3>Lectura de macros</h3><div id="targets"></div><div class="legend"><span><i class="dot" style="background:var(--sage)"></i>en rango</span><span><i class="dot" style="background:var(--sun)"></i>falta</span><span><i class="dot" style="background:var(--rose)"></i>exceso</span></div></section><section class="library"><strong>Guisos y Comidas de Casa</strong><p>Para no aburrirte, usa la regla de "Deconstrucción".<br><br><strong>Ejemplo Ají de Gallina:</strong> Registra 100g Pollo cocido + 80g Arroz + 50g Papa. Para la salsa registra: 10g Aceite + 1/2 Pan.<br><br>¡Así comes rico y trackeas perfecto!</p></section></aside></div>
+<div class="dashboard"><main class="meals" id="meals"></main><aside class="side"><section class="score"><div class="score-label">Balance de hoy</div><div class="score-number"><span id="kcal">0</span><span id="kcalGoal">/ -- kcal</span></div><span class="score-status" id="kcalState">Cargando...</span><p class="score-note">Tolerancia de ±5%. Stevia e infusiones: 0 kcal.</p></section><section class="targets"><h3>Lectura de macros</h3><div id="targets"></div><div class="legend"><span><i class="dot" style="background:var(--sage)"></i>en rango</span><span><i class="dot" style="background:var(--sun)"></i>falta</span><span><i class="dot" style="background:var(--rose)"></i>exceso</span></div></section><section class="library"><strong>Guía Rápida de Intercambios</strong><p>1. Frutas de volumen como <strong>Papaya y Sandía</strong> te darán gran saciedad por pocas calorías.<br><br>2. <strong>Las Grasas</strong> (Palta, Aceitunas, Almendras) son intercambiables entre sí.<br><br>3. <strong>La Avena</strong> prepárala con abundante agua para aumentar su volumen.</p></section></aside></div>
 </div>
 <div class="sheet-overlay" id="sheetOverlay" role="dialog" aria-modal="true" aria-label="Vista previa de la hoja"><div class="sheet-modal"><div class="sheet-modal-head"><div><strong>Tu hoja del día</strong><p>Descárgala o mantén presionada la imagen para guardarla.</p></div><button class="sheet-close" id="sheetClose" type="button" aria-label="Cerrar">×</button></div><div class="sheet-scroll"><img id="sheetImg" alt="Resumen del plan nutricional del día"></div><div class="sheet-actions"><a class="btn main" id="sheetDownload" download="plan-rikkii.png">⬇ Descargar PNG</a><p class="sheet-hint">Si la descarga no arranca, mantén presionada la imagen o usa clic derecho y elige “Guardar imagen”.</p></div></div></div>
 <script>
@@ -24,43 +24,22 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwJ1KEgWRuP20QejnfDK
 // ========================================================================
 
 let DB = {};
-// Meta ajustada considerando los aceites de preparación (~1450 kcal)
 let GOAL = { k: 1450, p: 140, c: 110, f: 52 }; 
 let NAMES = [];
 
-// Opciones actualizadas con salteados (verduras+aceite) y desayuno completo
-const PRESETS=[
+// Fallback por si la hoja "Combinaciones" está vacía o falla. Usando Avena en vez de Tostadas.
+let PRESETS = [
   {
-    name:"Opción 1: Desayuno Full (Huevos+Yogurt)",
+    name:"Opción Base (Fallback)",
     meals:[
-      [ ["Huevo",2],["Huevo sin yema",1],["Yogurt Griego sin azúcar",200],["Tostada integral",2],["Palta sin cascara",30] ], 
-      [ ["Pollo pechuga crudo",150],["Tomate crudo",80],["Cebolla cruda",50],["Aceite",5] ], // Pollo salteado
-      [ ["Carne res magra cruda",150],["Papa cocida",150],["Verduras",100],["Aceite",5] ], 
-      [ ["Manzana",150] ], 
-      [ ["Atún en agua (escurrido)",120],["Tomate crudo",100],["Aceite",5] ] 
-    ]
-  },
-  {
-    name:"Opción 2: Desayuno Pechuga + Whey",
-    meals:[
-      [ ["Pollo pechuga crudo",150],["Rapiditas Cero Cero",1],["Palta sin cascara",40],["Aceite",5] ], 
-      [ ["Nitro Whey",1],["Palta sin cascara",30] ], 
-      [ ["Pollo pechuga crudo",150],["Arroz blanco cocido",80],["Verduras",100],["Aceite",8] ], 
-      [ ["Fresas",200] ], 
-      [ ["Cerdo magro crudo",150],["Tomate crudo",100],["Aceite",5] ] 
-    ]
-  },
-  {
-    name:"Opción 3: Pescado y Camote",
-    meals:[
-      [ ["Huevo",2],["Huevo sin yema",1],["Yogurt Griego sin azúcar",200],["Tostada integral",2],["Palta sin cascara",30] ], 
-      [ ["Pescado tollo crudo",150],["Tomate crudo",80],["Cebolla cruda",50],["Aceite",5] ], 
-      [ ["Pollo pechuga crudo",150],["Camote cocido",120],["Zanahoria cruda",100],["Aceite",5] ], 
-      [ ["Mandarina",120] ], 
-      [ ["Pollo pechuga crudo",150],["Aceite",5] ] 
+      [ ["Huevo",2],["Huevo sin yema",2],["Yogurt Griego sin azúcar",200],["Avena cruda",30],["Palta sin cascara",30] ],
+      [ ["Pollo pechuga crudo",150],["Verduras",150] ],
+      [ ["Carne res magra cruda",150],["Papa cocida",120],["Verduras",150],["Aceite",5] ],
+      [ ["Manzana",150] ],
+      [ ["Pollo pechuga crudo",150],["Verduras",100],["Aceite de Oliva Hacendado",5] ]
     ]
   }
-];
+]; 
 
 let meals=emptyMeals(),lastPreset=-1,currentPresetName="";
 
@@ -80,7 +59,7 @@ function totals(){const t={k:0,p:0,c:0,f:0};meals.forEach(m=>m.rows.forEach(r=>a
 function status(v,g){if(!v)return{label:"Sin datos",color:"var(--sun)"};const d=Math.abs(v-g)/g;if(d<=.05)return{label:"En objetivo",color:"var(--sage)"};return v<g?{label:"Falta",color:"var(--sun)"}:{label:"Exceso",color:"var(--rose)"}}
 
 function loadPreset(){
-  if(NAMES.length === 0) return; 
+  if(NAMES.length === 0 || PRESETS.length === 0) return; 
   lastPreset = (lastPreset + 1) % PRESETS.length; 
   const p = PRESETS[lastPreset];
   currentPresetName = p.name;
@@ -94,7 +73,7 @@ function loadPreset(){
       .map(([name, quantity]) => ({name, quantity}))
   }));
   
-  document.getElementById("context").innerHTML=`<span class="pill">${p.name}</span><span class="pill">Equivalencia ${lastPreset + 1} de 3</span>`;
+  document.getElementById("context").innerHTML=`<span class="pill">${p.name}</span><span class="pill">Cargado desde Google Sheets</span>`;
   render()
 }
 
@@ -108,7 +87,7 @@ function dashboard(){const t=totals(),ks=status(t.k,GOAL.k),state=document.getEl
 function sheetCanvas(){const t=totals(),W=840,p=46,scale=2,rows=meals.reduce((n,m)=>n+Math.max(m.rows.length,1),0),H=360+rows*34+meals.length*54,cv=document.createElement("canvas"),c=cv.getContext("2d");cv.width=W*scale;cv.height=H*scale;c.scale(scale,scale);c.fillStyle="#F4EFE4";c.fillRect(0,0,W,H);const f="Inter,system-ui,sans-serif";let y=p;c.fillStyle="#B0543C";c.font=`800 12px ${f}`;c.fillText("PLAN DIARIO · RIKKII",p,y);y+=40;c.fillStyle="#37312A";c.font=`850 34px ${f}`;c.fillText("Plan Nutricional Rikkii",p,y);y+=25;c.fillStyle="#7C7367";c.font=`600 14px ${f}`;c.fillText(`${currentPresetName||"Plan personalizado"} · ${new Date().toLocaleDateString("es-PE")}`,p,y);y+=28;c.strokeStyle="#DCD4C4";c.beginPath();c.moveTo(p,y);c.lineTo(W-p,y);c.stroke();y+=28;const cols=[W-p,W-p-58,W-p-116,W-p-178,W-p-268];meals.forEach((m,i)=>{const st=m.rows.reduce((x,r)=>(add(x,calc(r.name,r.quantity)),x),{k:0,p:0,c:0,f:0});c.fillStyle="#B0543C";c.font=`850 12px ${f}`;c.textAlign="left";c.fillText(`0${i+1}`,p,y);c.fillStyle="#37312A";c.font=`800 18px ${f}`;c.fillText(m.name,p+26,y);c.fillStyle="#7C7367";c.font=`700 14px ${f}`;c.textAlign="right";c.fillText(`${Math.round(st.k)} kcal`,W-p,y);c.textAlign="left";y+=21;c.fillStyle="#7C7367";c.font=`500 12px ${f}`;c.fillText(m.note,p+26,y);y+=21;c.fillStyle="#A79D8E";c.font=`700 10px ${f}`;c.fillText("ALIMENTO",p,y);c.textAlign="right";["CANT.","KCAL","P","C","G"].forEach((x,j)=>c.fillText(x,cols[4-j],y));c.textAlign="left";y+=18;(m.rows.length?m.rows:[{name:"Sin alimentos",quantity:0}]).forEach(r=>{const v=calc(r.name,r.quantity);c.fillStyle="#37312A";c.font=`600 13px ${f}`;c.fillText(r.name,p,y);c.textAlign="right";c.fillStyle="#7C7367";c.font=`500 13px ${f}`;c.fillText(`${Math.round(r.quantity)} ${DB[r.name]?.u||""}`,cols[4],y);c.fillText(Math.round(v.k),cols[3],y);c.fillText(v.p.toFixed(1),cols[2],y);c.fillText(v.c.toFixed(1),cols[1],y);c.fillText(v.f.toFixed(1),cols[0],y);c.textAlign="left";y+=28});c.fillStyle="#7C7367";c.font=`600 12px ${f}`;c.textAlign="right";c.fillText(`P ${Math.round(st.p)} g · C ${Math.round(st.c)} g · G ${Math.round(st.f)} g`,W-p,y);c.textAlign="left";y+=32});c.fillStyle="#37312A";c.beginPath();c.roundRect(p,y,W-2*p,190,20);c.fill();c.fillStyle="#F2EDE2";c.font=`700 12px ${f}`;c.fillText("BALANCE DEL DÍA",p+26,y+34);c.font=`850 44px ${f}`;c.fillText(`${Math.round(t.k)}`,p+26,y+80);c.fillStyle="#B8B0A2";c.font=`600 16px ${f}`;c.fillText(`/ ${GOAL.k} kcal`,p+170,y+80);let by=y+116;[["Proteína","p"],["Carbohidratos","c"],["Grasa","f"]].forEach(([l,k])=>{c.fillStyle="#F2EDE2";c.font=`600 13px ${f}`;c.textAlign="left";c.fillText(l,p+26,by);c.textAlign="right";c.fillStyle="#B8B0A2";c.fillText(`${Math.round(t[k])} / ${GOAL[k]} g`,W-p-26,by);by+=22});return cv}
 function generateImage(){if(!totals().k){alert("El día está vacío.");return}const url=sheetCanvas().toDataURL("image/png"),stamp=new Date().toISOString().slice(0,10);document.getElementById("sheetImg").src=url;const a=document.getElementById("sheetDownload");a.href=url;a.download=`plan-rikkii-${stamp}.png`;document.getElementById("sheetOverlay").classList.add("open")}
 
-// ==================== LÓGICA DE PARSEO CSV / GOOGLE SHEETS ====================
+// ==================== PARSEO Y CARGA ====================
 function parseCSV(text) {
   const lines = text.split(/\r?\n/);
   return lines.map(line => line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(cell => cell.replace(/^"|"$/g, '').trim()));
@@ -147,27 +126,47 @@ function parseMetas(csvText) {
   GOAL = newGoal;
 }
 
+function parseCombinaciones(csvText) {
+  if (!csvText || csvText.toLowerCase().includes("<!doctype html>")) return;
+  const rows = parseCSV(csvText);
+  const tempMap = {};
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    if (!row || row.length < 4 || !row[0]) continue;
+    const planName = row[0].trim();
+    const mealNum = parseInt(row[1]) - 1; 
+    const foodName = row[2].trim();
+    const quantity = parseFloat(row[3]);
+
+    if (!tempMap[planName]) tempMap[planName] = [[], [], [], [], []];
+    if (mealNum >= 0 && mealNum <= 4) tempMap[planName][mealNum].push([foodName, quantity]);
+  }
+  
+  const keys = Object.keys(tempMap);
+  if (keys.length > 0) {
+    PRESETS.length = 0; 
+    keys.forEach(k => PRESETS.push({ name: k, meals: tempMap[k] }));
+  }
+}
+
 async function fetchGoogleSheetsData() {
   const host = document.getElementById("meals");
-  host.innerHTML = `<div class="empty">⏳ Conectando con Google Sheets...</div>`;
+  host.innerHTML = `<div class="empty">⏳ Conectando con Google Sheets y descargando planes...</div>`;
   
   try {
     const urlAlimentos = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Alimentos`;
     const urlMetas = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Metas`;
+    const urlCombinaciones = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Combinaciones`;
 
-    const [resAlimentos, resMetas] = await Promise.all([
-      fetch(urlAlimentos).then(r => {
-        if (!r.ok) throw new Error("No se pudo obtener la hoja de Alimentos");
-        return r.text();
-      }),
-      fetch(urlMetas).then(r => {
-        if (!r.ok) throw new Error("No se pudo obtener la hoja de Metas");
-        return r.text();
-      })
+    const [resAlimentos, resMetas, resCombinaciones] = await Promise.all([
+      fetch(urlAlimentos).then(r => { if (!r.ok) throw new Error("Falla Alimentos"); return r.text(); }),
+      fetch(urlMetas).then(r => { if (!r.ok) throw new Error("Falla Metas"); return r.text(); }),
+      fetch(urlCombinaciones).then(r => r.ok ? r.text() : "").catch(() => "") 
     ]);
 
     parseAlimentos(resAlimentos);
     parseMetas(resMetas);
+    parseCombinaciones(resCombinaciones);
 
     NAMES.length = 0;
     NAMES.push(...Object.keys(DB).sort((a,b)=>a.localeCompare(b,"es")));
